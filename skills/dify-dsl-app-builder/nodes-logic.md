@@ -1,8 +1,8 @@
-# 逻辑控制节点：if-else / variable-aggregator / iteration
+# Logic Control Nodes: if-else / variable-aggregator / iteration
 
-## IF/ELSE 节点
+## IF/ELSE Node
 
-`type: if-else`；条件分支，`true` 和 `false` 两个出口（sourceHandle）。
+`type: if-else`; conditional branching with `true` and `false` outputs (`sourceHandle`).
 
 ```yaml
 data:
@@ -19,11 +19,11 @@ data:
     id: 'true'
     logical_operator: and
   desc: ''
-  title: 条件判断
+  title: Condition Check
   type: if-else
 ```
 
-Edge 出口示例：
+Edge output example:
 
 ```yaml
 - source: 'if_node'
@@ -36,15 +36,15 @@ Edge 出口示例：
 
 ---
 
-## Variable Aggregator 节点
+## Variable Aggregator Node
 
-`type: variable-aggregator`；聚合多条分支的变量为统一输出。
+`type: variable-aggregator`; aggregates variables from multiple branches into a unified output.
 
 ```yaml
 data:
   desc: ''
   output_type: string
-  title: 变量聚合
+  title: Variable Aggregation
   type: variable-aggregator
   variables:
   - - branch_true_node
@@ -53,9 +53,9 @@ data:
     - output
 ```
 
-输出变量：`output`（`value_selector: [aggregator_node, output]`）。
+Output variable: `output` (`value_selector: [aggregator_node, output]`).
 
-如需按分组聚合，加 `advanced_settings`：
+If grouped aggregation is needed, add `advanced_settings`:
 
 ```yaml
   advanced_settings:
@@ -73,11 +73,11 @@ data:
 
 ---
 
-## Iteration 节点
+## Iteration Node
 
-`type: iteration`；对数组逐项迭代，内部包含一个 `iteration-start` 子节点。
+`type: iteration`; iterates over an array item by item, containing an internal `iteration-start` sub-node.
 
-**容器节点**：
+**Container node:**
 
 ```yaml
 data:
@@ -93,7 +93,7 @@ data:
   output_type: array[string]
   parallel_nums: 10
   start_node_id: iter_node_start
-  title: 迭代
+  title: Iteration
   type: iteration
 height: 178
 id: iter_node
@@ -101,7 +101,7 @@ width: 388
 zIndex: 1
 ```
 
-**内部 iteration-start 子节点**（固定在容器左侧，不可拖动）：
+**Internal iteration-start sub-node** (fixed on the left side of container, not draggable):
 
 ```yaml
 data:
@@ -125,7 +125,7 @@ width: 44
 zIndex: 1002
 ```
 
-**内部 edge 规则**：
+**Internal edge rules:**
 
 ```yaml
 data:
@@ -137,6 +137,6 @@ data:
 zIndex: 1002
 ```
 
-**内部节点规则**：加 `parentId: iter_node`、`zIndex: 1002`。
+**Internal node rules**: add `parentId: iter_node` and `zIndex: 1002`.
 
-迭代当前项通过 `value_selector: [iter_node, item]` 引用，类型与 `iterator_input_type` 的元素类型一致。
+Reference the current iterated item via `value_selector: [iter_node, item]`; its type matches the element type of `iterator_input_type`.

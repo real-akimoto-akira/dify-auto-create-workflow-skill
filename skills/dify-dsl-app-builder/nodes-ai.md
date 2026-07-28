@@ -1,8 +1,8 @@
-# AI 节点：llm / agent
+# AI Nodes: llm / agent
 
-## LLM 节点
+## LLM Node
 
-`type: llm`；调用大语言模型生成文本。
+`type: llm`; calls a large language model to generate text.
 
 ```yaml
 data:
@@ -21,7 +21,7 @@ data:
     provider: langgenius/openai/openai
   prompt_template:
   - role: system
-    text: 你是一个助手。
+    text: You are an assistant.
   - role: user
     text: '{{#start.query#}}'
   retry_config:
@@ -42,19 +42,19 @@ data:
       variable_selector: []
 ```
 
-输出变量：`text`（`value_selector: [llm_node, text]`）；模板引用：`{{#llm_node.text#}}`。
+Output variable: `text` (`value_selector: [llm_node, text]`); template reference: `{{#llm_node.text#}}`.
 
-`memory.enabled: true` 时节点会读取对话历史（仅 advanced-chat 模式）。
+When `memory.enabled: true`, the node reads conversation history (advanced-chat mode only).
 
 ---
 
-## Agent 节点
+## Agent Node
 
-`type: agent`；调用插件提供的 Agent 策略执行多轮 tool-use 任务。
+`type: agent`; invokes an Agent strategy provided by plugins to execute multi-turn tool-use tasks.
 
-`agent_strategy_provider_name` 格式为 `<author>/<plugin>/<provider>`，`agent_strategy_name` 为策略名称。
+`agent_strategy_provider_name` format is `<author>/<plugin>/<provider>`, and `agent_strategy_name` is the strategy name.
 
-### Function Calling 策略（内置）
+### Function Calling Strategy (Built-in)
 
 ```yaml
 data:
@@ -64,7 +64,7 @@ data:
       value:
         completion_params: {}
         mode: chat
-        model: gpt-4o            # 与 name 保持一致
+        model: gpt-4o            # keep consistent with name
         model_type: llm
         name: gpt-4o
         provider: langgenius/openai/openai
@@ -72,7 +72,7 @@ data:
     tools:
       type: constant
       value:
-        - enabled: true          # 必须有 enabled: true
+        - enabled: true          # enabled: true is required
           provider_id: <provider_id>
           provider_name: <provider_name>
           provider_type: builtin
@@ -81,32 +81,32 @@ data:
           tool_parameters: {}
     query:
       type: constant
-      value: '{{#start.query#}}'  # agent 节点用模板语法，不用 type: variable
+      value: '{{#start.query#}}'  # use template syntax in agent node; do not use type: variable
     max_iterations:
       type: constant
       value: 5
     instruction:
       type: constant
-      value: '你是一个助手。'
+      value: 'You are an assistant.'
   agent_strategy_label: Function Calling
   agent_strategy_name: function_calling
-  agent_strategy_provider_name: langgenius/agent/agent   # 注意：不是 agent_strategies
+  agent_strategy_provider_name: langgenius/agent/agent   # note: not agent_strategies
   output_schema: {}
   title: Agent
   tool_node_version: '2'
   type: agent
 ```
 
-**注意事项：**
-- `model.value` 必须包含 `completion_params`、`model`（同 `name`）、`model_type: llm`、`type: model-selector`，否则 UI 显示"未选择模型"
-- `query` 使用 `type: constant` + 模板语法 `{{#node_id.field#}}`，不能用 `type: variable` 的列表选择器
-- 每个 tool 必须包含 `enabled: true`
-- `agent_strategy_provider_name` 固定为 `langgenius/agent/agent`（Dify 官方 Agent 策略插件）
-- 输出变量：`text`（`value_selector: [agent_node, text]`）；模板引用：`{{#agent_node.text#}}`
+**Notes:**
+- `model.value` must contain `completion_params`, `model` (same as `name`), `model_type: llm`, and `type: model-selector`; otherwise UI shows "Model not selected"
+- `query` must use `type: constant` + template syntax `{{#node_id.field#}}`; do not use the `type: variable` selector list
+- Every tool must include `enabled: true`
+- `agent_strategy_provider_name` must be `langgenius/agent/agent` (official Dify Agent strategy plugin)
+- Output variable: `text` (`value_selector: [agent_node, text]`); template reference: `{{#agent_node.text#}}`
 
-### MCP SSE Agent 策略（需安装 junjiem/mcp_see_agent 插件）
+### MCP SSE Agent Strategy (requires `junjiem/mcp_see_agent` plugin)
 
-支持通过 MCP 协议调用外部工具服务。
+Supports external tool services through the MCP protocol.
 
 ```yaml
 data:
@@ -139,7 +139,7 @@ data:
       value: 5
     instruction:
       type: constant
-      value: '你是一个助手。'
+      value: 'You are an assistant.'
     mcp_servers:
       type: constant
       value: |
@@ -160,25 +160,25 @@ data:
   type: agent
 ```
 
-`mcp_servers` 支持两种传输方式：
-- SSE：`"transport": "sse"`，`"url": "http://host/sse"`
-- Streamable HTTP：`"transport": "streamable_http"`，`"url": "http://host/mcp"`
+`mcp_servers` supports two transport modes:
+- SSE: `"transport": "sse"`, `"url": "http://host/sse"`
+- Streamable HTTP: `"transport": "streamable_http"`, `"url": "http://host/mcp"`
 
-可以在 `mcpServers` 中配置多个 MCP 服务。
+You can configure multiple MCP services in `mcpServers`.
 
-Agent 节点输出变量：`text`（`value_selector: [agent_node, text]`）；模板引用：`{{#agent_node.text#}}`；若 `output_schema` 定义了具体字段，可按字段名引用。
+Agent node output variable: `text` (`value_selector: [agent_node, text]`); template reference: `{{#agent_node.text#}}`. If `output_schema` defines concrete fields, reference by field name.
 
 ---
 
-## 将 Dify 自身工具暴露为 MCP 服务
+## Expose Dify Tools as MCP Services
 
-[junjiem/mcp_compat_dify_tools](https://marketplace.dify.ai/plugin/junjiem/mcp_compat_dify_tools) 插件（需 Dify 1.2.0+）可以把 Dify 平台上的工具 API 转成 MCP 兼容接口。安装后在插件页添加 Endpoint，选择要暴露的工具列表，即可获得 MCP 服务 URL。
+The [junjiem/mcp_compat_dify_tools](https://marketplace.dify.ai/plugin/junjiem/mcp_compat_dify_tools) plugin (requires Dify 1.2.0+) can convert Dify platform tool APIs into MCP-compatible interfaces. After installation, add an Endpoint in the plugin page and select tools to expose, then you can get the MCP service URL.
 
-修改已有 Endpoint 的工具列表后，需要先停用再启用才能生效。
+After changing the tool list of an existing Endpoint, you must disable and then re-enable it for changes to take effect.
 
-获得 URL 后，填入 MCP SSE Agent 的 `mcp_servers` 配置：
+After obtaining the URL, fill it into the MCP SSE Agent `mcp_servers` configuration:
 
-**Streamable HTTP 传输（推荐）：**
+**Streamable HTTP transport (recommended):**
 
 ```json
 {
@@ -191,7 +191,7 @@ Agent 节点输出变量：`text`（`value_selector: [agent_node, text]`）；�
 }
 ```
 
-**SSE 传输（旧版）：**
+**SSE transport (legacy):**
 
 ```json
 {
@@ -204,4 +204,4 @@ Agent 节点输出变量：`text`（`value_selector: [agent_node, text]`）；�
 }
 ```
 
-这样 MCP Agent 就可以把 Dify 平台上配置的工具当作 MCP 工具来调用，实现 Dify 工具与 Agent 节点的闭环集成。
+This allows MCP Agent to call tools configured on the Dify platform as MCP tools, enabling closed-loop integration between Dify tools and the Agent node.

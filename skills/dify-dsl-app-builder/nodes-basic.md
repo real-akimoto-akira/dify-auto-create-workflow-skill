@@ -1,18 +1,18 @@
-# 基础节点：start / end / answer
+# Basic Nodes: start / end / answer
 
-## Start 节点
+## Start Node
 
-`type: start`；workflow 模式声明输入参数，advanced-chat 无需 variables。
+`type: start`; declares input parameters in workflow mode. advanced-chat does not require `variables`.
 
 ```yaml
 data:
   desc: ''
-  title: 输入参数
+  title: Input Parameters
   type: start
   variables:
   - default: ''
     hint: ''
-    label: 用户ID
+    label: User ID
     max_length: 256
     options: []
     required: true
@@ -22,9 +22,9 @@ data:
 
 ---
 
-## End 节点
+## End Node
 
-`type: end`；仅用于 workflow 模式的最终输出。
+`type: end`; used only for final output in workflow mode.
 
 ```yaml
 data:
@@ -35,21 +35,21 @@ data:
     - content
     value_type: string    # string | number | object | array[string] | array[number] | array[object]
     variable: content
-  title: 输出
+  title: Output
   type: end
 ```
 
 ---
 
-## Answer 节点
+## Answer Node
 
-`type: answer`；仅用于 advanced-chat 模式的流式输出，支持变量模板语法 `{{#node_id.field#}}`。
+`type: answer`; used only for streaming output in advanced-chat mode. Supports variable template syntax `{{#node_id.field#}}`.
 
 ```yaml
 data:
   answer: '{{#llm_node.text#}}'
   desc: ''
-  title: 回复
+  title: Reply
   type: answer
   variables: []
 ```

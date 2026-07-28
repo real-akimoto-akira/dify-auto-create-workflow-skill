@@ -1,8 +1,8 @@
-# 处理节点：code / template-transform / parameter-extractor
+# Processing Nodes: code / template-transform / parameter-extractor
 
-## Code 节点
+## Code Node
 
-`type: code`；执行 Python3 或 JavaScript，声明输入 `variables` 和 `outputs`。
+`type: code`; executes Python3 or JavaScript, declaring `variables` and `outputs`.
 
 ```yaml
 data:
@@ -13,7 +13,7 @@ data:
     content:
       children: null
       type: string          # string | number | object | array[string] | array[number] | array[object]
-  title: 代码处理
+  title: Code Processing
   type: code
   variables:
   - value_selector:
@@ -28,19 +28,19 @@ data:
     variable: raw
 ```
 
-输出变量通过 `[code_node, <output_key>]` 引用。
+Output variables are referenced via `[code_node, <output_key>]`.
 
 ---
 
-## Template Transform 节点
+## Template Transform Node
 
-`type: template-transform`；Jinja2 模板渲染，适合简单字符串拼接，无需写 Python。
+`type: template-transform`; Jinja2 template rendering, suitable for simple string composition without writing Python.
 
 ```yaml
 data:
   desc: ''
-  template: '用户：{{ user_id }}，结果：{{ result }}'
-  title: 模板渲染
+  template: 'User: {{ user_id }}, Result: {{ result }}'
+  title: Template Rendering
   type: template-transform
   variables:
   - value_selector:
@@ -55,27 +55,27 @@ data:
     variable: result
 ```
 
-输出变量：`output`（`value_selector: [template_node, output]`）。
+Output variable: `output` (`value_selector: [template_node, output]`).
 
 ---
 
-## Parameter Extractor 节点
+## Parameter Extractor Node
 
-`type: parameter-extractor`；用 LLM 从自然语言文本中提取结构化参数，输出字段由 `parameters` 定义。
+`type: parameter-extractor`; uses LLM to extract structured parameters from natural-language text. Output fields are defined by `parameters`.
 
 ```yaml
 data:
-  description: 从用户输入中提取参数
+  description: Extract parameters from user input
   model:
     mode: chat
     name: gpt-4o
     provider: langgenius/openai/openai
   parameters:
-  - description: 城市名称
+  - description: City name
     name: city
     required: true
     type: string    # string | number | bool | array[string] | array[number] | array[object] | object
-  - description: 日期范围
+  - description: Date range
     name: date_range
     required: false
     type: string
@@ -83,8 +83,8 @@ data:
   - start
   - query
   reasoning_mode: function_call   # function_call | prompt
-  title: 参数提取
+  title: Parameter Extraction
   type: parameter-extractor
 ```
 
-输出变量通过 `[extractor_node, <parameter_name>]` 引用，例如 `[extractor_node, city]`。
+Output variables are referenced via `[extractor_node, <parameter_name>]`, for example `[extractor_node, city]`.

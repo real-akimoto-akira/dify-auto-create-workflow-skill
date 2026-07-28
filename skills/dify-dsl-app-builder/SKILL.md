@@ -1,121 +1,121 @@
 ---
 name: dify-dsl-app-builder
-description: 根据用户需求设计并生成 Dify 应用 DSL，创建或更新 workflow/advanced-chat 应用。Use when the user asks to build a Dify workflow from requirements, generate DSL, create an app from DSL, update an existing app DSL, or automate Dify app creation/update through Admin API.
+description: Design and generate Dify app DSL based on user requirements, and create or update workflow/advanced-chat apps. Use when the user asks to build a Dify workflow from requirements, generate DSL, create an app from DSL, update an existing app DSL, or automate Dify app creation/update through Admin API.
 ---
 
 # Dify DSL App Builder
 
-## 适用场景
+## Applicable Scenarios
 
-当用户希望“根据需求自动生成 Dify DSL 并创建或更新应用”时使用，包括：
+Use this skill when the user wants to "automatically generate Dify DSL from requirements and create or update apps", including:
 
-- 从自然语言需求生成 workflow DSL。
-- 修改已有 DSL 并更新应用。
-- 创建新的 workflow 应用并导入 DSL。
-- 覆盖导入已有 workflow 或 advanced-chat 应用。
-- 导入后重新导出并验证远端 DSL。
+- Generate workflow DSL from natural-language requirements.
+- Modify existing DSL and update an app.
+- Create a new workflow app and import DSL.
+- Overwrite-import an existing workflow or advanced-chat app.
+- Re-export after import and verify remote DSL.
 
-涉及 Console Admin API 的请求时，必须先读取并遵守 `skills/dify-console-admin-api/SKILL.md`。
+When requests involve the Console Admin API, you must first read and follow `skills/dify-console-admin-api/SKILL.md`.
 
-## 基本原则
+## Basic Principles
 
-- 先给出 DSL 设计方案并征求用户确认，用户同意后再修改文件或调用接口。
-- 优先编辑已有 DSL 文件；没有 DSL 文件时再创建新的本地 DSL 文件。
-- 不要把 `ADMIN_API_KEY` 写入仓库文件、PR 描述、长期脚本或最终回复。
-- 默认 `include_secret=false`，除非用户明确要求导出密钥。
-- 覆盖更新前先导出旧 DSL 作为备份，避免丢失已有配置。
-- Admin API 卡住或失败时，先报告错误和排查建议；只有用户明确授权，才允许直接写数据库。
+- First provide a DSL design proposal and ask for user confirmation. Only modify files or call APIs after the user agrees.
+- Prefer editing an existing DSL file. Create a new local DSL file only if none exists.
+- Do not write `ADMIN_API_KEY` into repository files, PR descriptions, long-lived scripts, or final responses.
+- Default to `include_secret=false` unless the user explicitly asks to export secrets.
+- Before overwrite updates, export the old DSL as a backup to avoid losing existing configuration.
+- If Admin API calls hang or fail, report errors and troubleshooting suggestions first. Only write directly to the database when explicitly authorized by the user.
 
-## 参数收集
+## Parameter Collection
 
-开始执行前确认这些参数：
+Confirm these parameters before execution:
 
-- `DIFY_BASE_URL`：例如 `http://127.0.0.1:5001`。
-- `ADMIN_API_KEY`：服务端配置的 admin key。
-- `WORKSPACE_ID`：目标 workspace 的 `tenants.id`。
-- 操作类型：创建应用、更新应用、只生成 DSL。
+- `DIFY_BASE_URL`: for example `http://127.0.0.1:5001`.
+- `ADMIN_API_KEY`: admin key configured on the server.
+- `WORKSPACE_ID`: target workspace `tenants.id`.
+- Operation type: create app, update app, or generate DSL only.
 
-按操作类型继续确认：
+Then continue by operation type:
 
-- 创建应用：`APP_NAME`，可选 `APP_DESCRIPTION`。
-- 更新应用：`APP_ID`，可选现有 DSL 文件路径。
-- 只生成 DSL：目标文件路径或应用名称。
+- Create app: `APP_NAME`, optional `APP_DESCRIPTION`.
+- Update app: `APP_ID`, optional existing DSL file path.
+- DSL only: target file path or app name.
 
-## DSL 设计流程
+## DSL Design Process
 
-根据用户需求先形成方案：
+Form a proposal based on user requirements first:
 
-1. 明确应用模式，默认使用 `workflow`。
-2. 明确输入参数，包括变量名、类型、是否必填、默认值。
-3. 明确节点链路，例如 `start -> http-request -> code -> end`。
-4. 明确外部依赖，例如 HTTP API、插件、知识库、模型。
-5. 明确输出字段和输出格式。
-6. 明确错误处理策略，例如外部 API 失败时返回“未知”或错误信息。
+1. Clarify app mode; use `workflow` by default.
+2. Clarify input parameters, including variable name, type, required flag, and default value.
+3. Clarify node chain, such as `start -> http-request -> code -> end`.
+4. Clarify external dependencies, such as HTTP APIs, plugins, knowledge bases, and models.
+5. Clarify output fields and output format.
+6. Clarify error-handling strategy, such as returning "unknown" or an error message when external APIs fail.
 
-方案确认后再生成 DSL。节点结构应参考当前仓库中已导出的 DSL 或测试 fixture，保持字段名和节点类型与 Dify 当前版本一致。
+Generate DSL only after proposal confirmation. Node structures should reference exported DSL or test fixtures in this repository, and keep field names and node types aligned with the current Dify version.
 
-## 创建应用流程
+## App Creation Flow
 
-1. 生成本地 DSL 文件。
-2. 使用 `skills/dify-console-admin-api/SKILL.md` 的创建应用接口创建 workflow 应用。
-3. 使用返回的 `APP_ID` 覆盖导入 DSL。
-4. 如果导入返回 `202 pending`，调用 confirm 接口。
-5. 重新导出该应用 DSL，验证远端内容包含关键节点、变量和输出。
+1. Generate a local DSL file.
+2. Use the create-app API from `skills/dify-console-admin-api/SKILL.md` to create a workflow app.
+3. Use the returned `APP_ID` to overwrite-import DSL.
+4. If import returns `202 pending`, call the confirm API.
+5. Re-export the app DSL and verify that remote content includes key nodes, variables, and outputs.
 
-## 更新应用流程
+## App Update Flow
 
-1. 使用 `APP_ID` 导出当前 DSL，保存为备份文件。
-2. 修改或生成新的本地 DSL。
-3. 使用 `apps/imports` 传入 `app_id` 覆盖导入。
-4. 如果导入返回 `202 pending`，调用 confirm 接口。
-5. 重新导出该应用 DSL，验证远端内容包含关键节点、变量和输出。
+1. Export current DSL with `APP_ID` and save it as a backup file.
+2. Modify or generate a new local DSL.
+3. Use `apps/imports` with `app_id` for overwrite import.
+4. If import returns `202 pending`, call the confirm API.
+5. Re-export the app DSL and verify that remote content includes key nodes, variables, and outputs.
 
-## 验证要求
+## Validation Requirements
 
-更新完成后至少验证：
+After updates, verify at least:
 
-- 远端导出的 DSL 能成功返回。
-- 远端 DSL 包含预期输入变量。
-- 远端 DSL 包含预期节点类型和关键配置。
-- 远端 DSL 包含预期输出字段或输出文本。
+- Remote DSL export succeeds.
+- Remote DSL includes expected input variables.
+- Remote DSL includes expected node types and key configuration.
+- Remote DSL includes expected output fields or output text.
 
-最终回复只说明结果、文件路径、应用 ID 和验证结论；不要泄露 `ADMIN_API_KEY`。
+In the final response, only provide result, file path, app ID, and validation conclusion. Do not reveal `ADMIN_API_KEY`.
 
-## Edge 结构说明
+## Edge Structure Notes
 
-每条 edge 必须包含：
+Each edge must include:
 
 ```yaml
 - data:
     isInIteration: false
     isInLoop: false
-    sourceType: <源节点 type>
-    targetType: <目标节点 type>
+    sourceType: <source node type>
+    targetType: <target node type>
   id: <source>-source-<target>-target
   source: '<source_node_id>'
-  sourceHandle: source        # if-else 分支用 'true'/'false'；iteration 出口用 source
+  sourceHandle: source        # if-else branches use 'true'/'false'; iteration output uses source
   target: '<target_node_id>'
   targetHandle: target
   type: custom
   zIndex: 0
 ```
 
-迭代容器内部 edge 额外加：`isInIteration: true`、`iteration_id`。
+For edges inside an iteration container, also add: `isInIteration: true`, `iteration_id`.
 
-## 节点位置布局建议
+## Node Positioning Recommendations
 
-节点从左到右按 x=80,384,688,992… 排列（间隔 304），y 统一 282。分支节点上下偏移约 ±130。
+Arrange nodes from left to right at x=80,384,688,992... (spacing 304), with unified y=282. Branch nodes should be offset vertically by about ±130.
 
-每个节点的外层通用字段：`id`、`height`（54/90/110/126/178）、`position`/`positionAbsolute`（x/y）、`selected: false`、`sourcePosition: right`、`targetPosition: left`、`type: custom`、`width: 242`。
+Common outer fields for each node: `id`, `height` (54/90/110/126/178), `position`/`positionAbsolute` (x/y), `selected: false`, `sourcePosition: right`, `targetPosition: left`, `type: custom`, `width: 242`.
 
-## 节点参考
+## Node Reference
 
-需要用到某类节点时，读取对应文件获取完整模板：
+When you need a node category, read the corresponding file for complete templates:
 
-| 文件 | 包含节点 |
+| File | Included Nodes |
 |---|---|
-| [nodes-basic.md](nodes-basic.md) | `start`、`end`、`answer` |
-| [nodes-logic.md](nodes-logic.md) | `if-else`、`variable-aggregator`、`iteration` |
-| [nodes-processing.md](nodes-processing.md) | `code`、`template-transform`、`parameter-extractor` |
-| [nodes-ai.md](nodes-ai.md) | `llm`、`agent`（Function Calling / MCP SSE）、将 Dify 工具暴露为 MCP 服务（mcp_compat_dify_tools） |
-| [nodes-external.md](nodes-external.md) | `http-request`、`tool`、`knowledge-retrieval` |
+| [nodes-basic.md](nodes-basic.md) | `start`, `end`, `answer` |
+| [nodes-logic.md](nodes-logic.md) | `if-else`, `variable-aggregator`, `iteration` |
+| [nodes-processing.md](nodes-processing.md) | `code`, `template-transform`, `parameter-extractor` |
+| [nodes-ai.md](nodes-ai.md) | `llm`, `agent` (Function Calling / MCP SSE), expose Dify tools as MCP services (`mcp_compat_dify_tools`) |
+| [nodes-external.md](nodes-external.md) | `http-request`, `tool`, `knowledge-retrieval` |

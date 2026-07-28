@@ -1,8 +1,8 @@
-# 外部连接节点：http-request / tool / knowledge-retrieval
+# External Integration Nodes: http-request / tool / knowledge-retrieval
 
-## HTTP Request 节点
+## HTTP Request Node
 
-`type: http-request`；调用外部 HTTP 接口，URL 和 body 中均可用 `{{#node.field#}}` 引用变量。
+`type: http-request`; calls external HTTP APIs. Variables can be referenced in both URL and body with `{{#node.field#}}`.
 
 ```yaml
 data:
@@ -27,14 +27,14 @@ data:
     connect: 10
     read: 30
     write: 30
-  title: 调用接口
+  title: Call API
   type: http-request
   url: 'http://example.com/api/{{#start.user_id#}}'
 ```
 
-输出变量：`body`（string）、`status_code`（number）、`headers`（object）。
+Output variables: `body` (string), `status_code` (number), `headers` (object).
 
-JSON body 示例：
+JSON body example:
 
 ```yaml
   body:
@@ -42,7 +42,7 @@ JSON body 示例：
     data: '{"key": "{{#start.value#}}"}'
 ```
 
-带 Bearer Token 鉴权示例：
+****** example:
 
 ```yaml
   authorization:
@@ -53,9 +53,9 @@ JSON body 示例：
 
 ---
 
-## Tool 节点
+## Tool Node
 
-`type: tool`；调用内置工具或插件工具。`provider_type: builtin` 为内置工具。
+`type: tool`; invokes built-in tools or plugin tools. `provider_type: builtin` means built-in tool.
 
 ```yaml
 data:
@@ -63,7 +63,7 @@ data:
   provider_id: time
   provider_name: time
   provider_type: builtin
-  title: 获取当前时间
+  title: Get Current Time
   tool_configurations:
     format:
       type: constant
@@ -79,16 +79,16 @@ data:
   type: tool
 ```
 
-插件工具 `provider_type: api`，`provider_id` 为插件 ID。`tool_configurations` 的每个参数值可以是：
-- `type: constant`：固定值
-- `type: variable`：引用工作流变量（需在 `tool_parameters` 中配置 selector）
-- `type: mixed`：包含模板变量的字符串
+For plugin tools, use `provider_type: api`, and `provider_id` should be the plugin ID. Each parameter value in `tool_configurations` can be:
+- `type: constant`: fixed value
+- `type: variable`: reference workflow variable (configure selector in `tool_parameters`)
+- `type: mixed`: string containing template variables
 
 ---
 
-## Knowledge Retrieval 节点
+## Knowledge Retrieval Node
 
-`type: knowledge-retrieval`；从知识库检索相关文档片段。`dataset_ids` 在 DSL 导出时已加密，导入时自动解密。
+`type: knowledge-retrieval`; retrieves relevant document chunks from a knowledge base. `dataset_ids` are encrypted in exported DSL and automatically decrypted on import.
 
 ```yaml
 data:
@@ -111,8 +111,8 @@ data:
   - start
   - query
   retrieval_mode: multiple    # multiple | single
-  title: 知识检索
+  title: Knowledge Retrieval
   type: knowledge-retrieval
 ```
 
-输出变量：`result`（array[object]，`value_selector: [retrieval_node, result]`）。
+Output variable: `result` (array[object], `value_selector: [retrieval_node, result]`).
