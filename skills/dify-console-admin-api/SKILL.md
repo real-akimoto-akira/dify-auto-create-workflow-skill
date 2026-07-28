@@ -1,53 +1,53 @@
 ---
 name: dify-console-admin-api
-description: 通过 ADMIN_API_KEY 自动化调用 Dify Console API，创建工作流应用、导出 DSL、导入 DSL。适用于不想走浏览器登录 cookie、需要脚本化测试或自动化工作流导入导出的场景。
+description: Use ADMIN_API_KEY to automate Dify Console API calls for creating workflow apps, exporting DSL, and importing DSL. Suitable for users who do not want browser-login cookies and need scripted testing or automated workflow import/export.
 disable-model-invocation: true
 ---
 
 # Dify Console Admin API
 
-## 适用场景
+## Applicable Scenarios
 
-当用户想通过 `ADMIN_API_KEY` 自动化调用 Dify Console API 时使用，包括：
+Use this when the user wants to automate Dify Console API calls via `ADMIN_API_KEY`, including:
 
-- 创建工作流应用。
-- 导出应用或工作流 DSL。
-- 从 YAML 内容或 URL 导入 DSL。
-- 验证 admin key 鉴权是否生效。
+- Create workflow apps.
+- Export app or workflow DSL.
+- Import DSL from YAML content or URL.
+- Verify admin-key authentication works.
 
-## 先收集参数
+## Collect Parameters First
 
-在给出 curl 或执行请求前，先确认用户提供了这些必需参数：
+Before providing curl commands or executing requests, confirm the user has provided these required parameters:
 
-- `DIFY_BASE_URL`：Dify API 地址，例如 `https://dify.example.com` 或 `http://127.0.0.1:5001`。
-- `ADMIN_API_KEY`：服务端配置的 admin key。
-- `WORKSPACE_ID`：目标 workspace 的 `tenants.id`。
-- 操作类型：创建应用、导出 DSL、导入 DSL、覆盖导入、确认导入。
+- `DIFY_BASE_URL`: Dify API address, for example `https://dify.example.com` or `http://127.0.0.1:5001`.
+- `ADMIN_API_KEY`: admin key configured on the server.
+- `WORKSPACE_ID`: target workspace `tenants.id`.
+- Operation type: create app, export DSL, import DSL, overwrite import, confirm import.
 
-根据操作类型继续收集附加参数：
+Continue collecting extra parameters based on operation type:
 
-- 创建应用：`APP_NAME`，可选 `APP_DESCRIPTION`。
-- 导出 DSL：`APP_ID`，可选 `INCLUDE_SECRET`、`WORKFLOW_ID`。
-- 导入 DSL：`YAML_CONTENT` 或 `YAML_URL`。
-- 覆盖导入：额外需要 `APP_ID`，且只能覆盖 workflow 或 advanced-chat 应用。
-- 确认导入：`IMPORT_ID`。
+- Create app: `APP_NAME`, optional `APP_DESCRIPTION`.
+- Export DSL: `APP_ID`, optional `INCLUDE_SECRET`, `WORKFLOW_ID`.
+- Import DSL: `YAML_CONTENT` or `YAML_URL`.
+- Overwrite import: additionally requires `APP_ID`, and can only overwrite workflow or advanced-chat apps.
+- Confirm import: `IMPORT_ID`.
 
-不要把 `ADMIN_API_KEY` 写入仓库文件、PR 描述、日志或长期保存的脚本。需要展示命令时，优先使用变量。
+Do not write `ADMIN_API_KEY` into repository files, PR descriptions, logs, or long-term scripts. When showing commands, prefer environment variables.
 
-## 前置条件
+## Prerequisites
 
-运行中的 API 进程必须启用：
+The running API process must enable:
 
 ```env
 ADMIN_API_KEY_ENABLE=true
 ADMIN_API_KEY=<admin-key>
 ```
 
-修改后必须重启 API 进程。如果请求返回 `401 Invalid token`，通常表示运行中的进程没有加载 admin key，或者 key 不正确。
+After changes, restart the API process. If a request returns `401 Invalid token`, it usually means the running process did not load admin key, or the key is incorrect.
 
-## 推荐变量模板
+## Recommended Variable Template
 
-让用户先在 shell 中设置变量，再执行后续命令：
+Ask users to set shell variables first, then run follow-up commands:
 
 ```bash
 export DIFY_BASE_URL="https://dify.example.com"
@@ -55,26 +55,26 @@ export ADMIN_API_KEY="your-admin-key"
 export WORKSPACE_ID="your-workspace-id"
 ```
 
-如果用户明确是在本地开发环境测试，`DIFY_BASE_URL` 常见值是：
+If the user is clearly testing in local development, a common `DIFY_BASE_URL` value is:
 
 ```bash
 export DIFY_BASE_URL="http://127.0.0.1:5001"
 ```
 
-## 请求头规则
+## Request Header Rules
 
-所有通过 admin key 鉴权的 Console API 请求都要带：
+All Console API requests authenticated by admin key must include:
 
 ```text
-Authorization: Bearer ${ADMIN_API_KEY}
+Authorization: ******
 X-WORKSPACE-ID: ${WORKSPACE_ID}
 ```
 
-admin key 生效时不需要 `X-CSRF-Token`，也不需要登录 cookie。API 会在指定 workspace 中找到一个 owner 账号，并以该账号身份执行。
+When admin key is active, `X-CSRF-Token` and login cookies are not required. The API will find an owner account in the specified workspace and execute as that account.
 
-## 可选：查询 workspace id
+## Optional: Query Workspace ID
 
-如果用户不知道 `WORKSPACE_ID`，最简单的方式是在 Dify 网页上按 F12 打开开发者工具，找到 `/console/api/workspaces` 接口的响应，其中 `id` 字段即为 `WORKSPACE_ID`：
+If the user does not know `WORKSPACE_ID`, the easiest method is to open browser devtools (F12) on Dify web UI and inspect the response of `/console/api/workspaces`; the `id` field is `WORKSPACE_ID`:
 
 ```json
 {
@@ -88,9 +88,9 @@ admin key 生效时不需要 `X-CSRF-Token`，也不需要登录 cookie。API �
 }
 ```
 
-## 创建工作流应用
+## Create Workflow App
 
-先确认：
+First confirm:
 
 ```bash
 export APP_NAME="admin-key-test-workflow"
@@ -99,7 +99,7 @@ export APP_DESCRIPTION="created by admin api key test"
 
 ```bash
 curl -i -X POST "${DIFY_BASE_URL}/console/api/apps" \
-  -H "Authorization: Bearer ${ADMIN_API_KEY}" \
+  -H "Authorization: ******" \
   -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" \
   -H "Content-Type: application/json" \
   -d "{
@@ -109,15 +109,15 @@ curl -i -X POST "${DIFY_BASE_URL}/console/api/apps" \
   }"
 ```
 
-成功时应返回：
+On success, expected response:
 
 ```text
 HTTP/1.1 201 CREATED
 ```
 
-## 导出应用或工作流 DSL
+## Export App or Workflow DSL
 
-先确认：
+First confirm:
 
 ```bash
 export APP_ID="your-app-id"
@@ -127,22 +127,22 @@ export INCLUDE_SECRET="false"
 ```bash
 curl -sS -X GET \
   "${DIFY_BASE_URL}/console/api/apps/${APP_ID}/export?include_secret=${INCLUDE_SECRET}" \
-  -H "Authorization: Bearer ${ADMIN_API_KEY}" \
+  -H "Authorization: ******" \
   -H "X-WORKSPACE-ID: ${WORKSPACE_ID}"
 ```
 
-如果要导出指定草稿 workflow，追加 `workflow_id`：
+To export a specific draft workflow, append `workflow_id`:
 
 ```bash
 export WORKFLOW_ID="your-workflow-id"
 
 curl -sS -X GET \
   "${DIFY_BASE_URL}/console/api/apps/${APP_ID}/export?include_secret=${INCLUDE_SECRET}&workflow_id=${WORKFLOW_ID}" \
-  -H "Authorization: Bearer ${ADMIN_API_KEY}" \
+  -H "Authorization: ******" \
   -H "X-WORKSPACE-ID: ${WORKSPACE_ID}"
 ```
 
-响应结构：
+Response structure:
 
 ```json
 {
@@ -150,15 +150,15 @@ curl -sS -X GET \
 }
 ```
 
-## 导入 DSL
+## Import DSL
 
-从 YAML 内容导入：
+Import from YAML content:
 
 ```bash
 export YAML_CONTENT="$(cat /path/to/workflow.yml)"
 
 curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" \
-  -H "Authorization: Bearer ${ADMIN_API_KEY}" \
+  -H "Authorization: ******" \
   -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" \
   -H "Content-Type: application/json" \
   --data-binary @- <<JSON
@@ -169,13 +169,13 @@ curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" \
 JSON
 ```
 
-从 URL 导入：
+Import from URL:
 
 ```bash
 export YAML_URL="https://example.com/workflow.yml"
 
 curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" \
-  -H "Authorization: Bearer ${ADMIN_API_KEY}" \
+  -H "Authorization: ******" \
   -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" \
   -H "Content-Type: application/json" \
   -d "{
@@ -184,14 +184,14 @@ curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" \
   }"
 ```
 
-如果要覆盖已有 workflow 或 advanced-chat 应用，传入 `app_id`：
+To overwrite an existing workflow or advanced-chat app, pass `app_id`:
 
 ```bash
 export APP_ID="existing-app-id"
 export YAML_CONTENT="$(cat /path/to/workflow.yml)"
 
 curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" \
-  -H "Authorization: Bearer ${ADMIN_API_KEY}" \
+  -H "Authorization: ******" \
   -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" \
   -H "Content-Type: application/json" \
   --data-binary @- <<JSON
@@ -203,23 +203,23 @@ curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" \
 JSON
 ```
 
-如果导入返回 `202` 且 `status: pending`，需要确认导入：
+If import returns `202` with `status: pending`, you need to confirm the import:
 
 ```bash
 export IMPORT_ID="your-import-id"
 
 curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports/${IMPORT_ID}/confirm" \
-  -H "Authorization: Bearer ${ADMIN_API_KEY}" \
+  -H "Authorization: ******" \
   -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
-## 排查
+## Troubleshooting
 
-- `201 CREATED`：创建应用成功。
-- `200 OK`：导出或导入完成，或已返回数据。
-- `202 ACCEPTED`：导入进入 pending，需要调用 confirm 接口。
-- `401 Invalid token`：admin key 缺失、未启用、值不正确，或配置变更后 API 进程未重启。
-- Connection refused：`DIFY_BASE_URL` 不可达，或 API 服务未运行。
-- `ModuleNotFoundError: werkzeug.utils`：`.venv` 里的 Werkzeug 安装损坏；重装 `Werkzeug==3.1.6` 或重建 `api/.venv`。
+- `201 CREATED`: app created successfully.
+- `200 OK`: export/import completed or data returned.
+- `202 ACCEPTED`: import is pending; call the confirm API.
+- `401 Invalid token`: admin key missing, not enabled, incorrect, or API process not restarted after config change.
+- Connection refused: `DIFY_BASE_URL` unreachable, or API service not running.
+- `ModuleNotFoundError: werkzeug.utils`: broken Werkzeug install in `.venv`; reinstall `Werkzeug==3.1.6` or recreate `api/.venv`.
